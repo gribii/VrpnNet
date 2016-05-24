@@ -103,7 +103,7 @@ namespace VrpnNet.Core.Vrpn
         private void TryConnect(TcpListener controlListener, int timeout)
         {
             // connect to remote udp port for initiating the connection
-            using (var setup = new Socket(SocketType.Dgram, ProtocolType.Udp))
+            using (var setup = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
                 var msg = Encoding.UTF8.GetBytes(string.Format("{0} {1}\0",
                     this._localBindAddress, (controlListener.LocalEndpoint as IPEndPoint).Port));
@@ -112,8 +112,7 @@ namespace VrpnNet.Core.Vrpn
             }
 
             // wait until server connects to our tcp socket
-            var accept = controlListener.AcceptSocketAsync();
-            if (accept.Wait(timeout)) this._tcpControl = accept.Result;
+            this._tcpControl = controlListener.AcceptSocket(new TimeSpan(0, 0, 0, 0, timeout), 10);
         }
 
         /// <summary>
@@ -124,12 +123,19 @@ namespace VrpnNet.Core.Vrpn
             if (!this.Connected) throw new InvalidOperationException("Not connected");
 
             this._udpData.Disconnect(false);
-            this._udpData.Dispose();
             this._tcpControl.Disconnect(false);
-            this._tcpControl.Dispose();
 
             this._udpData = null;
             this._tcpControl = null;
+        }
+
+        /// <summary>
+        /// Reconnect this connection.
+        /// </summary>
+        public void Reconnect(int retries, int timeout)
+        {
+            this.ForceDisconnect();
+            this.Connect(retries, timeout);
         }
 
         /// <summary>
@@ -138,10 +144,8 @@ namespace VrpnNet.Core.Vrpn
         public void ForceDisconnect()
         {
             if (this._udpData != null && this._udpData.Connected) this._udpData?.Disconnect(false);
-            this._udpData?.Dispose();
             if (this._tcpControl != null && this._tcpControl.Connected && this._tcpControl.IsConnected())
                 this._tcpControl?.Disconnect(false);
-            this._tcpControl?.Dispose();
 
             this._udpData = null;
             this._tcpControl = null;
@@ -175,7 +179,7 @@ namespace VrpnNet.Core.Vrpn
                         var senderLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
                         var sender = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) senderLen).ToArray());
 #if DEBUG
-                        Debug.WriteLine("[Sender] Sender: {0} ID: {1}", sender, msg.Header.Sender);
+                        Debug.WriteLine(string.Format("[Sender] Sender: {0} ID: {1}", sender, msg.Header.Sender));
 #endif
                         SenderRegistration.Instance.RegisterSender(msg.Header.Sender, sender);
                         break;
@@ -183,13 +187,13 @@ namespace VrpnNet.Core.Vrpn
                         var typeLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
                         var type = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) typeLen).ToArray());
 #if DEBUG
-                        Debug.WriteLine("[Type] Type: {0} ID: {1}", type, msg.Header.Sender);
+                        Debug.WriteLine(string.Format("[Type] Type: {0} ID: {1}", type, msg.Header.Sender));
 #endif
                         TypeRegistration.Instance.RegisterRemoteType(msg.Header.Sender, type);
                         break;
                     default:
 #if DEBUG
-                        Debug.WriteLine("[Message] Sender: {0} Type: {1}", msg.Header.Sender, msg.Header.Type);
+                        Debug.WriteLine(string.Format("[Message] Sender: {0} Type: {1}", msg.Header.Sender, msg.Header.Type));
 #endif
                         TypeRegistration.Instance.ExecuteHandler(msg);
                         break;

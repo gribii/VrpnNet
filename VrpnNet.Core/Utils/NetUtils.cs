@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace VrpnNet.Core.Utils
 {
@@ -14,7 +16,6 @@ namespace VrpnNet.Core.Utils
         /// Returns if a socket is connected or not.
         /// </summary>
         /// <param name="s">The socket where to check connection state.</param>
-        /// <remarks>https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.connected.aspx</remarks>
         public static bool IsConnected(this Socket s)
         {
             try
@@ -22,24 +23,6 @@ namespace VrpnNet.Core.Utils
                 return !(s.Poll(1, SelectMode.SelectRead) && s.Available == 0);
             }
             catch (SocketException) { return false; }
-            var blockingState = s.Blocking;
-
-            try
-            {
-                var tmp = new byte[1];
-                s.Blocking = false;
-                s.Send(tmp, 0, 0);
-                return true;
-            }
-            catch (SocketException e)
-            {
-                // 10035 == WSAEWOULDBLOCK
-                return e.NativeErrorCode.Equals(10035);
-            }
-            finally
-            {
-                s.Blocking = blockingState;
-            }
         }
 
         /// <summary>
@@ -78,6 +61,22 @@ namespace VrpnNet.Core.Utils
         public static IPAddress Ipv4AddressFromHostname(string hostname)
         {
             return Dns.GetHostAddresses(hostname).First(a => a.AddressFamily == AddressFamily.InterNetwork);
+        }
+
+        /// <summary>
+        /// Accept a socket but wait only a specified timeout.
+        /// </summary>
+        /// <remarks>http://stackoverflow.com/questions/19653588/timeout-at-acceptsocket</remarks>
+        public static Socket AcceptSocket(this TcpListener listener, TimeSpan timeout, int pollInterval)
+        {
+            var watch = new Stopwatch();
+            watch.Start();
+            while (watch.Elapsed < timeout)
+            {
+                if (listener.Pending()) return listener.AcceptSocket();
+                Thread.Sleep(pollInterval);
+            }
+            return null;
         }
     }
 }
