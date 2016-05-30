@@ -28,6 +28,10 @@ namespace VrpnNet.Core.Vrpn.Remote
         public event VelocityChangeMessage VelocityChange;
         public event WorkspaceChangeMessage WorkspaceChange;
 
+        public VrpnTrackerRemote(string name) : base(name)
+        {
+        }
+
         private T HandleChangeBase<T>(VrpnMessage msg, bool useSensor, bool useDt) where T : ChangeDataBase, new()
         {
             var len = (9 - (useSensor ? 1 : 0) - (useDt ? 1 : 0)) *sizeof (double);
@@ -119,12 +123,12 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public override void RegisterTypes()
         {
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Pos_Quat", this.HandlePositionChange);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Acceleration", this.HandleAccelerationChange);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Velocity", this.HandleVelocityChange);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker To_Room", this.HandleTrackerToRoomChange);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Unit_To_Sensor", this.HandleUnitToSensorChange);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Workspace", this.HandleWorkspaceChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Pos_Quat", this.Name, this.HandlePositionChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Acceleration", this.Name, this.HandleAccelerationChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Velocity", this.Name, this.HandleVelocityChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker To_Room", this.Name, this.HandleTrackerToRoomChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Unit_To_Sensor", this.Name, this.HandleUnitToSensorChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Workspace", this.Name, this.HandleWorkspaceChange);
         }
 
         public abstract class ChangeDataBase
@@ -174,6 +178,20 @@ namespace VrpnNet.Core.Vrpn.Remote
         {
             public double[] MinimumCorner;
             public double[] MaximumCorner;
+        }
+
+        public void RequestTracker2Room(VrpnConnection c)
+        {
+            //var header = new VrpnMessageHeader(0, 0, SenderRegistration)
+            //var msg = new VrpnMessage();
+        }
+
+        public void RequestUnit2Sensor(VrpnConnection c)
+        {
+        }
+
+        public void RequestWorkspace(VrpnConnection c)
+        {
         }
     }
 }

@@ -27,6 +27,10 @@ namespace VrpnNet.Core.Vrpn.Remote
         /// </summary>
         public event ChangeMessage ChangeReceived;
 
+        public VrpnButtonRemote(string name) : base(name)
+        {
+        }
+
         /// <summary>
         ///     Convert the raw button states data into an object.
         /// </summary>
@@ -67,8 +71,8 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public override void RegisterTypes()
         {
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button States", this.HandleButtonStates);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Change", this.HandleButtonChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Button States", this.Name, this.HandleButtonStates);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Change", this.Name, this.HandleButtonChange);
         }
 
         /// <summary>

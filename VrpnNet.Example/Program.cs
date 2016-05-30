@@ -34,15 +34,13 @@ namespace VrpnNet.Example
         private void Start()
         {
             // register message handlers
-            var analog = new VrpnAnalogRemote();
-            var button = new VrpnButtonRemote();
-            var tracker = new VrpnTrackerRemote();
+            var analog = new VrpnAnalogRemote("DTrack");
+            var button = new VrpnButtonRemote("DTrack");
+            var tracker = new VrpnTrackerRemote("DTrack");
 
             analog.RegisterTypes();
             button.RegisterTypes();
             tracker.RegisterTypes();
-
-            SenderRegistration.Instance.RegisterLocalSender("DTrack");
 
             analog.ChannelReceived += (header, data) =>
             {

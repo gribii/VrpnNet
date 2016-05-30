@@ -18,6 +18,10 @@ namespace VrpnNet.Core.Vrpn.Remote
         /// </summary>
         public event ChannelMessage ChannelReceived;
 
+        public VrpnAnalogRemote(string name) : base(name)
+        {
+        }
+
         /// <summary>
         ///     Convert the raw data into an object.
         /// </summary>
@@ -42,7 +46,7 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public override void RegisterTypes()
         {
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Analog Channel", this.HandleAnalogChannel);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Analog Channel", this.Name, this.HandleAnalogChannel);
         }
 
         /// <summary>

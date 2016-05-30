@@ -162,7 +162,7 @@ namespace VrpnNet.Core.Vrpn
             this.ReadMessages(this._tcpControl);
             this.ReadMessages(this._udpData);
         }
-
+        
         /// <summary>
         ///     Read all available messages from a socket.
         /// </summary>

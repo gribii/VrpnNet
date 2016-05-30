@@ -33,32 +33,6 @@ namespace VrpnNet.Core
         public string this[int id] => this._senders.ContainsKey(id) ? this._senders[id] : null;
 
         /// <summary>
-        ///     Returns if a sender is in state active listening. Client has to register to all _senders.
-        /// </summary>
-        /// <param name="id">The remote id of this sender.</param>
-        /// <returns>true: active listening</returns>
-        public bool IsActive(int id)
-        {
-            return this._localSenders.Contains(this[id]);
-        }
-
-        /// <summary>
-        ///     Register a sender for active listening.
-        /// </summary>
-        public void RegisterLocalSender(string name)
-        {
-            if (!this._localSenders.Contains(name)) this._localSenders.Add(name);
-        }
-
-        /// <summary>
-        ///     Remove a sender from active listening.
-        /// </summary>
-        public void UnregisterLocalSender(string name)
-        {
-            if (this._localSenders.Contains(name)) this._localSenders.Remove(name);
-        }
-
-        /// <summary>
         ///     Register a new remote sender.
         /// </summary>
         public void RegisterSender(int id, string name)

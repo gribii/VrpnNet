@@ -9,14 +9,15 @@ namespace VrpnNet.Core
     public class TypeRegistration
     {
         private static TypeRegistration _instance;
-        private readonly Dictionary<string, List<VrpnMessageHandler>> _localTypes;
+
+        private readonly Dictionary<LocalTypeKey, List<VrpnMessageHandler>> _localTypes;
 
         private readonly Dictionary<int, string> _remoteTypes;
 
         private TypeRegistration()
         {
             this._remoteTypes = new Dictionary<int, string>();
-            this._localTypes = new Dictionary<string, List<VrpnMessageHandler>>();
+            this._localTypes = new Dictionary<LocalTypeKey, List<VrpnMessageHandler>>();
         }
 
         /// <summary>
@@ -29,21 +30,25 @@ namespace VrpnNet.Core
         ///     Register a local type with the handler which will be used on message arrival.
         /// </summary>
         /// <param name="name">Type id</param>
+        /// <param name="sender">The sender to listen for.</param>
         /// <param name="handler">Handler callback</param>
-        public void RegisterLocalType(string name, VrpnMessageHandler handler)
+        public void RegisterLocalType(string name, string sender, VrpnMessageHandler handler)
         {
-            if (!this._localTypes.ContainsKey(name)) this._localTypes.Add(name, new List<VrpnMessageHandler>());
-            this._localTypes[name].Add(handler);
+            var key = new LocalTypeKey(name, sender);
+            if (!this._localTypes.ContainsKey(key)) this._localTypes.Add(key, new List<VrpnMessageHandler>());
+            this._localTypes[key].Add(handler);
         }
 
         /// <summary>
         ///     Unregister a local type.
         /// </summary>
         /// <param name="name">Type id</param>
+        /// <param name="sender">The sender to liste for.</param>
         /// <param name="handler">Handler callback to delete</param>
-        public void UnregisterLocalType(string name, VrpnMessageHandler handler)
+        public void UnregisterLocalType(string name, string sender, VrpnMessageHandler handler)
         {
-            if (this._localTypes.ContainsKey(name)) this._localTypes[name].Remove(handler);
+            var key = new LocalTypeKey(name, sender);
+            if (this._localTypes.ContainsKey(key)) this._localTypes[key].Remove(handler);
         }
 
         /// <summary>
@@ -73,10 +78,40 @@ namespace VrpnNet.Core
         public void ExecuteHandler(VrpnMessage msg)
         {
             var type = msg.Header.Type;
-            if (!SenderRegistration.Instance.IsActive(msg.Header.Sender)) return;
+            var sender = SenderRegistration.Instance[msg.Header.Sender];
             if (!this._remoteTypes.ContainsKey(type)) return;
-            if (!this._localTypes.ContainsKey(this._remoteTypes[type])) return;
-            this._localTypes[this._remoteTypes[type]].ForEach(handler => handler(msg));
+            if (!this._localTypes.ContainsKey(new LocalTypeKey(this._remoteTypes[type], sender))) return;
+            this._localTypes[new LocalTypeKey(this._remoteTypes[type], sender)].ForEach(handler => handler(msg));
+        }
+
+        private class LocalTypeKey
+        {
+            public LocalTypeKey(string name, string sender)
+            {
+                this.Name = name;
+                this.Sender = sender;
+            }
+
+            private string Name { get; }
+            private string Sender { get; }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as LocalTypeKey;
+                if (other == null) return false;
+
+                return this.Name == other.Name && this.Sender == other.Sender;
+            }
+
+            protected bool Equals(LocalTypeKey other)
+            {
+                return string.Equals(this.Name, other.Name) && string.Equals(this.Sender, other.Sender);
+            }
+
+            public override int GetHashCode()
+            {
+                return ((this.Name?.GetHashCode() ?? 0)*397) ^ (this.Sender?.GetHashCode() ?? 0);
+            }
         }
     }
 }
