@@ -9,16 +9,6 @@ namespace VrpnNet.Core.Vrpn.Remote
     public class VrpnButtonRemote : VrpnRemoteBase
     {
         /// <summary>
-        ///     Handler for &quot;Button Admin&quot; message.
-        /// </summary>
-        public delegate void AdminMessage(VrpnMessageHeader header, AdminData data);
-
-        /// <summary>
-        ///     Handler for &quot;Button Alert&quot; message.
-        /// </summary>
-        public delegate void AlertMessage(VrpnMessageHeader header, AlertData data);
-
-        /// <summary>
         ///     Handler for &quot;Button Change&quot; message.
         /// </summary>
         public delegate void ChangeMessage(VrpnMessageHeader handler, ChangeData data);
@@ -32,14 +22,6 @@ namespace VrpnNet.Core.Vrpn.Remote
         /// Event raised on new states message arrived.;
         /// </summary>
         public event StatesMessage StatesReceived;
-        /// <summary>
-        /// Event raised on new admin message arrived.;
-        /// </summary>
-        public event AdminMessage AdminReceived;
-        /// <summary>
-        /// Event raised on new alert message arrived.;
-        /// </summary>
-        public event AlertMessage AlertReceived;
         /// <summary>
         /// Event raised on new change message arrived.;
         /// </summary>
@@ -68,24 +50,6 @@ namespace VrpnNet.Core.Vrpn.Remote
         }
 
         /// <summary>
-        ///     Convert the raw button admin data into an object.
-        /// </summary>
-        /// <param name="msg">Message containing headers and raw data.</param>
-        private void HandleButtonAdmin(VrpnMessage msg)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        ///     Convert the raw button alert data into an object.
-        /// </summary>
-        /// <param name="msg">Message containing headers and raw data.</param>
-        private void HandleButtonAlert(VrpnMessage msg)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         ///     Convert the raw button change data into an object.
         /// </summary>
         /// <param name="msg">Message containing headers and raw data.</param>
@@ -104,8 +68,6 @@ namespace VrpnNet.Core.Vrpn.Remote
         public override void RegisterTypes()
         {
             TypeRegistration.Instance.RegisterLocalType("vrpn_Button States\0", this.HandleButtonStates);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Admin\0", this.HandleButtonAdmin);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Alert\0", this.HandleButtonAlert);
             TypeRegistration.Instance.RegisterLocalType("vrpn_Button Change\0", this.HandleButtonChange);
         }
 
@@ -115,20 +77,6 @@ namespace VrpnNet.Core.Vrpn.Remote
         public class StatesData
         {
             public int[] States;
-        }
-
-        /// <summary>
-        ///     Parsed data for admin message.
-        /// </summary>
-        public class AdminData
-        {
-        }
-
-        /// <summary>
-        ///     Parsed data for alert message.
-        /// </summary>
-        public class AlertData
-        {
         }
 
         /// <summary>
