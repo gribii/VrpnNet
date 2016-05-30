@@ -17,8 +17,8 @@ namespace VrpnNet.Core.Vrpn
         private readonly IPAddress _localBindAddress;
 
         private readonly int _port;
-        private Socket _tcpControl;
 
+        private Socket _tcpControl;
         private Socket _udpData;
 
         /// <summary>
@@ -35,6 +35,8 @@ namespace VrpnNet.Core.Vrpn
         }
 
         private IPAddress RemoteIp => NetUtils.Ipv4AddressFromHostname(this._host);
+
+        internal Socket TcpControl => this._tcpControl;
 
         /// <summary>
         ///     Returns if a connection is established or not.

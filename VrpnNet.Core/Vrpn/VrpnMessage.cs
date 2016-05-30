@@ -46,6 +46,15 @@ namespace VrpnNet.Core.Vrpn
         }
 
         /// <summary>
+        ///     Send the data of ther tcp socket of an existing connection.
+        /// </summary>
+        /// <param name="c">The connection to vrpn server.</param>
+        public void SendTcp(VrpnConnection c)
+        {
+            this.Send(c.TcpControl);
+        }
+
+        /// <summary>
         ///     Receive a message from the network.
         /// </summary>
         /// <param name="s">The socket where to receive data from.</param>

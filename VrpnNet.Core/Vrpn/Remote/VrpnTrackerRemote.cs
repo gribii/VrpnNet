@@ -182,16 +182,32 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public void RequestTracker2Room(VrpnConnection c)
         {
-            //var header = new VrpnMessageHeader(0, 0, SenderRegistration)
-            //var msg = new VrpnMessage();
+            var sender = SenderRegistration.Instance[this.Name];
+            var type = TypeRegistration.Instance["vrpn_Tracker Request_Tracker_To_Room"];
+            if (!sender.HasValue || !type.HasValue) return;
+            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var msg = new VrpnMessage(header, new byte[0]);
+            msg.SendTcp(c);
         }
 
         public void RequestUnit2Sensor(VrpnConnection c)
         {
+            var sender = SenderRegistration.Instance[this.Name];
+            var type = TypeRegistration.Instance["vrpn_Tracker Request_Unit_To_Sensor"];
+            if (!sender.HasValue || !type.HasValue) return;
+            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var msg = new VrpnMessage(header, new byte[0]);
+            msg.SendTcp(c);
         }
 
         public void RequestWorkspace(VrpnConnection c)
         {
+            var sender = SenderRegistration.Instance[this.Name];
+            var type = TypeRegistration.Instance["vrpn_Tracker Request_Tracker_Workspace"];
+            if (!sender.HasValue || !type.HasValue) return;
+            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var msg = new VrpnMessage(header, new byte[0]);
+            msg.SendTcp(c);
         }
     }
 }

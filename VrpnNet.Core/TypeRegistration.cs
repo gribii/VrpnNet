@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using VrpnNet.Core.Vrpn;
 
 namespace VrpnNet.Core
@@ -25,6 +26,14 @@ namespace VrpnNet.Core
         /// </summary>
         public static TypeRegistration Instance
             => TypeRegistration._instance ?? (TypeRegistration._instance = new TypeRegistration());
+
+        /// <summary>
+        /// Returns the id of a specific remote registered type.
+        /// </summary>
+        /// <param name="name">The name of the type.</param>
+        /// <returns>Id or null</returns>
+        public int? this[string name]
+            => this._remoteTypes.ContainsValue(name) ? (int?)this._remoteTypes.FirstOrDefault(v => v.Value == name).Key : null;
 
         /// <summary>
         ///     Register a local type with the handler which will be used on message arrival.
@@ -58,8 +67,10 @@ namespace VrpnNet.Core
         /// <param name="name">Type id</param>
         public void RegisterRemoteType(int sender, string name)
         {
-            if (this._remoteTypes.ContainsKey(sender)) this._remoteTypes[sender] = name.Replace("\0", "");
-            else this._remoteTypes.Add(sender, name.Replace("\0", ""));
+            name = name.Replace("\0", "");
+            if (this[name].HasValue) this.UnregisterRemoteType(this[name].Value);
+            if (this._remoteTypes.ContainsKey(sender)) this._remoteTypes[sender] = name;
+            else this._remoteTypes.Add(sender, name);
         }
 
         /// <summary>

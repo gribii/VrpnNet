@@ -37,10 +37,12 @@ namespace VrpnNet.Example
             var analog = new VrpnAnalogRemote("DTrack");
             var button = new VrpnButtonRemote("DTrack");
             var tracker = new VrpnTrackerRemote("DTrack");
+            var button2 = new VrpnButtonRemote("Mouse0");
 
             analog.RegisterTypes();
             button.RegisterTypes();
             tracker.RegisterTypes();
+            button2.RegisterTypes();
 
             analog.ChannelReceived += (header, data) =>
             {
@@ -54,7 +56,22 @@ namespace VrpnNet.Example
                     data.Button, data.ButtonState,
                     SenderRegistration.Instance[header.Sender].Trim());
             };
+            button2.ChangeReceived += (header, data) =>
+            {
+                Console.WriteLine("[Button Change] [{2}] Button {0} change state to {1}",
+                    data.Button, data.ButtonState,
+                    SenderRegistration.Instance[header.Sender].Trim());
+            };
             button.StatesReceived += (header, data) =>
+            {
+                for (var i = 0; i < data.States.Length; i++)
+                {
+                    Console.WriteLine("[Button States] [{2}] Button {0} is in state {1}",
+                        i, data.States[i],
+                        SenderRegistration.Instance[header.Sender].Trim());
+                }
+            };
+            button2.StatesReceived += (header, data) =>
             {
                 for (var i = 0; i < data.States.Length; i++)
                 {
@@ -106,6 +123,10 @@ namespace VrpnNet.Example
             // start message reader thread
             this._running = true;
             new Thread(this.ReadMessageHandler).Start(c);
+
+            tracker.RequestTracker2Room(c);
+            tracker.RequestUnit2Sensor(c);
+            tracker.RequestWorkspace(c);
         }
 
         private void Stop()

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace VrpnNet.Core
 {
@@ -33,12 +35,22 @@ namespace VrpnNet.Core
         public string this[int id] => this._senders.ContainsKey(id) ? this._senders[id] : null;
 
         /// <summary>
+        ///     Returns the sender id for a specific already registered sender name.
+        /// </summary>
+        /// <param name="name">The name of the sender</param>
+        /// <returns>The id of the sender or null</returns>
+        public int? this[string name]
+            => this._senders.ContainsValue(name) ? (int?) this._senders.FirstOrDefault(v => v.Value == name).Key : null;
+
+        /// <summary>
         ///     Register a new remote sender.
         /// </summary>
         public void RegisterSender(int id, string name)
         {
-            if (this._senders.ContainsKey(id)) this._senders[id] = name.Replace("\0", "");
-            else this._senders.Add(id, name.Replace("\0", ""));
+            name = name.Replace("\0", "");
+            if (this[name].HasValue) this.UnregisterSender(this[name].Value);
+            if (this._senders.ContainsKey(id)) this._senders[id] = name;
+            else this._senders.Add(id, name);
         }
 
         /// <summary>
