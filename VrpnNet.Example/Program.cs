@@ -39,10 +39,10 @@ namespace VrpnNet.Example
             var tracker = new VrpnTrackerRemote("DTrack");
             var button2 = new VrpnButtonRemote("Mouse0");
 
-            analog.RegisterTypes();
-            button.RegisterTypes();
+            //analog.RegisterTypes();
+            //button.RegisterTypes();
             tracker.RegisterTypes();
-            button2.RegisterTypes();
+            //button2.RegisterTypes();
 
             analog.ChannelReceived += (header, data) =>
             {
@@ -90,10 +90,14 @@ namespace VrpnNet.Example
             };
             tracker.PositionChange += (header, data) =>
             {
+                if (data.Sensor == 2) Console.ForegroundColor = ConsoleColor.Red;
+                else if (data.Sensor == 5) Console.ForegroundColor = ConsoleColor.Yellow;
+                else Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("[Tracker Position] [{0}] Sensor {1}, Pos [{2}], Quat [{3}]",
                     SenderRegistration.Instance[header.Sender].Trim(), data.Sensor,
                     string.Join(",", data.Velocity.Select(v => string.Format("{0:0.00}", v))),
                     string.Join(",", data.Orientation.Select(v => string.Format("{0:0.00}", v))));
+                Console.ForegroundColor = ConsoleColor.White;
             };
             tracker.TrackerToRoomChange += (header, data) =>
             {
@@ -124,6 +128,10 @@ namespace VrpnNet.Example
             this._running = true;
             new Thread(this.ReadMessageHandler).Start(c);
 
+            Thread.Sleep(5000);
+            VrpnMessage.CreateSenderDescriptionMessage(tracker.Name,
+                SenderRegistration.Instance.RegisterLocalSender(tracker.Name)).SendTcp(c);
+            tracker.RegisterLocalTypes(c);
             tracker.RequestTracker2Room(c);
             tracker.RequestUnit2Sensor(c);
             tracker.RequestWorkspace(c);

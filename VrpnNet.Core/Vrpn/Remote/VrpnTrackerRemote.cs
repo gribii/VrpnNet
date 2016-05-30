@@ -27,9 +27,10 @@ namespace VrpnNet.Core.Vrpn.Remote
         public event UnitToSensorChangeMessage UnitToSensorchange;
         public event VelocityChangeMessage VelocityChange;
         public event WorkspaceChangeMessage WorkspaceChange;
-
-        public VrpnTrackerRemote(string name) : base(name)
+        
+        public VrpnTrackerRemote(string sender) : base(sender)
         {
+            SenderRegistration.Instance.RegisterLocalSender(sender);
         }
 
         private T HandleChangeBase<T>(VrpnMessage msg, bool useSensor, bool useDt) where T : ChangeDataBase, new()
@@ -131,6 +132,23 @@ namespace VrpnNet.Core.Vrpn.Remote
             TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Workspace", this.Name, this.HandleWorkspaceChange);
         }
 
+        /// <summary>
+        /// Register the local request messages and send the ids to the server.
+        /// </summary>
+        /// <param name="c">The vrpn server connection.</param>
+        public void RegisterLocalTypes(VrpnConnection c)
+        {
+            // create type ids
+            var id1 = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Tracker_To_Room");
+            var id2 = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Unit_To_Sensor");
+            var id3 = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Tracker_Workspace");
+
+            // send infos to server
+            VrpnMessage.CreateTypeDescriptionMessage("vrpn_Tracker Request_Tracker_To_Room\0", id1).SendTcp(c);
+            VrpnMessage.CreateTypeDescriptionMessage("vrpn_Tracker Request_Unit_To_Sensor\0", id2).SendTcp(c);
+            VrpnMessage.CreateTypeDescriptionMessage("vrpn_Tracker Request_Tracker_Workspace\0", id3).SendTcp(c);
+        }
+
         public abstract class ChangeDataBase
         {
             internal double[] data1, data2;
@@ -182,30 +200,27 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public void RequestTracker2Room(VrpnConnection c)
         {
-            var sender = SenderRegistration.Instance[this.Name];
-            var type = TypeRegistration.Instance["vrpn_Tracker Request_Tracker_To_Room"];
-            if (!sender.HasValue || !type.HasValue) return;
-            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var sender = SenderRegistration.Instance.RegisterLocalSender(this.Name);
+            var type = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Tracker_To_Room");
+            var header = VrpnMessageHeader.Create(new byte[0], sender, type);
             var msg = new VrpnMessage(header, new byte[0]);
             msg.SendTcp(c);
         }
 
         public void RequestUnit2Sensor(VrpnConnection c)
         {
-            var sender = SenderRegistration.Instance[this.Name];
-            var type = TypeRegistration.Instance["vrpn_Tracker Request_Unit_To_Sensor"];
-            if (!sender.HasValue || !type.HasValue) return;
-            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var sender = SenderRegistration.Instance.RegisterLocalSender(this.Name);
+            var type = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Unit_To_Sensor");
+            var header = VrpnMessageHeader.Create(new byte[0], sender, type);
             var msg = new VrpnMessage(header, new byte[0]);
             msg.SendTcp(c);
         }
 
         public void RequestWorkspace(VrpnConnection c)
         {
-            var sender = SenderRegistration.Instance[this.Name];
-            var type = TypeRegistration.Instance["vrpn_Tracker Request_Tracker_Workspace"];
-            if (!sender.HasValue || !type.HasValue) return;
-            var header = VrpnMessageHeader.Create(new byte[0], sender.Value, type.Value);
+            var sender = SenderRegistration.Instance.RegisterLocalSender(this.Name);
+            var type = TypeRegistration.Instance.RegisterLocalType("vrpn_Tracker Request_Tracker_Workspace");
+            var header = VrpnMessageHeader.Create(new byte[0], sender, type);
             var msg = new VrpnMessage(header, new byte[0]);
             msg.SendTcp(c);
         }

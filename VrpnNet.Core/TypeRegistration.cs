@@ -13,11 +13,14 @@ namespace VrpnNet.Core
 
         private readonly Dictionary<LocalTypeKey, List<VrpnMessageHandler>> _localTypes;
 
+        private readonly Dictionary<string, int> _localTypeIds;
+
         private readonly Dictionary<int, string> _remoteTypes;
 
         private TypeRegistration()
         {
             this._remoteTypes = new Dictionary<int, string>();
+            this._localTypeIds = new Dictionary<string, int>();
             this._localTypes = new Dictionary<LocalTypeKey, List<VrpnMessageHandler>>();
         }
 
@@ -36,16 +39,41 @@ namespace VrpnNet.Core
             => this._remoteTypes.ContainsValue(name) ? (int?)this._remoteTypes.FirstOrDefault(v => v.Value == name).Key : null;
 
         /// <summary>
+        /// Register a local type without any handler method. Used for registering request methods.
+        /// </summary>
+        /// <param name="name">Message name</param>
+        /// <returns></returns>
+        public int RegisterLocalType(string name)
+        {
+            if (!this._localTypeIds.ContainsKey(name)) this._localTypeIds.Add(name, this._localTypeIds.Count == 0 ? 0 : (this._localTypeIds.Values.Max() + 1));
+            return this._localTypeIds[name];
+        }
+
+        /// <summary>
         ///     Register a local type with the handler which will be used on message arrival.
         /// </summary>
         /// <param name="name">Type id</param>
         /// <param name="sender">The sender to listen for.</param>
         /// <param name="handler">Handler callback</param>
-        public void RegisterLocalType(string name, string sender, VrpnMessageHandler handler)
+        /// <returns> the id of the registered type.</returns>
+        public int RegisterLocalType(string name, string sender, VrpnMessageHandler handler)
         {
             var key = new LocalTypeKey(name, sender);
             if (!this._localTypes.ContainsKey(key)) this._localTypes.Add(key, new List<VrpnMessageHandler>());
             this._localTypes[key].Add(handler);
+
+            return this.RegisterLocalType(name);
+        }
+
+        /// <summary>
+        /// Returns the registered local type id for this type name.
+        /// </summary>
+        /// <param name="name">The name of the type</param>
+        /// <returns>The id or null if not registered.</returns>
+        public int? GetLocalTypeId(string name)
+        {
+            if (!this._localTypeIds.ContainsKey(name)) return null;
+            return this._localTypeIds[name];
         }
 
         /// <summary>

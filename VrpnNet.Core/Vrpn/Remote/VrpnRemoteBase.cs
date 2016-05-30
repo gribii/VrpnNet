@@ -10,7 +10,7 @@ namespace VrpnNet.Core.Vrpn.Remote
         /// <summary>
         /// The name of the remote device.
         /// </summary>
-        protected string Name { get; private set; }
+        public string Name { get; private set; }
 
         protected VrpnRemoteBase(string name)
         {

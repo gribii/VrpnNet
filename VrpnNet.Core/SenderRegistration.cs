@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace VrpnNet.Core
@@ -11,14 +10,14 @@ namespace VrpnNet.Core
     {
         private static SenderRegistration _instance;
 
-        private readonly List<string> _localSenders;
+        private readonly Dictionary<string, int> _localSenders;
 
         private readonly Dictionary<int, string> _senders;
 
         private SenderRegistration()
         {
             this._senders = new Dictionary<int, string>();
-            this._localSenders = new List<string>();
+            this._localSenders = new Dictionary<string, int>();
         }
 
         /// <summary>
@@ -59,6 +58,19 @@ namespace VrpnNet.Core
         public void UnregisterSender(int id)
         {
             if (this._senders.ContainsKey(id)) this._senders.Remove(id);
+        }
+
+        /// <summary>
+        ///     Register a local sender which can send messages to the vrpn server. If the sender is already registered just return
+        ///     the id.
+        /// </summary>
+        /// <param name="name">The name of the sender</param>
+        /// <returns></returns>
+        public int RegisterLocalSender(string name)
+        {
+            if (!this._localSenders.ContainsKey(name))
+                this._localSenders.Add(name, this._localSenders.Count == 0 ? 0 : (this._localSenders.Values.Max() + 1));
+            return this._localSenders[name];
         }
     }
 }
