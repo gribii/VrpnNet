@@ -48,6 +48,7 @@
     <Compile Include="Vrpn\Remote\VrpnAnalogRemote.cs" />
     <Compile Include="Vrpn\Remote\VrpnButtonRemote.cs" />
     <Compile Include="Vrpn\Remote\VrpnRemoteBase.cs" />
+    <Compile Include="Vrpn\Remote\VrpnTrackerRemote.cs" />
     <Compile Include="Vrpn\VrpnConnection.cs" />
     <Compile Include="Vrpn\VrpnConstants.cs" />
     <Compile Include="Vrpn\VrpnMessage.cs" />

@@ -42,7 +42,7 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public override void RegisterTypes()
         {
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Analog Channel\0", this.HandleAnalogChannel);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Analog Channel", this.HandleAnalogChannel);
         }
 
         /// <summary>

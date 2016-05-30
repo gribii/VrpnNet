@@ -67,8 +67,8 @@ namespace VrpnNet.Core.Vrpn.Remote
 
         public override void RegisterTypes()
         {
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button States\0", this.HandleButtonStates);
-            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Change\0", this.HandleButtonChange);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Button States", this.HandleButtonStates);
+            TypeRegistration.Instance.RegisterLocalType("vrpn_Button Change", this.HandleButtonChange);
         }
 
         /// <summary>

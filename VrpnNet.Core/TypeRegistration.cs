@@ -53,8 +53,8 @@ namespace VrpnNet.Core
         /// <param name="name">Type id</param>
         public void RegisterRemoteType(int sender, string name)
         {
-            if (this._remoteTypes.ContainsKey(sender)) this._remoteTypes[sender] = name;
-            else this._remoteTypes.Add(sender, name);
+            if (this._remoteTypes.ContainsKey(sender)) this._remoteTypes[sender] = name.Replace("\0", "");
+            else this._remoteTypes.Add(sender, name.Replace("\0", ""));
         }
 
         /// <summary>
@@ -72,10 +72,11 @@ namespace VrpnNet.Core
         /// <remarks>The type id is stored in the message header which makes another parameter useless.</remarks>
         public void ExecuteHandler(VrpnMessage msg)
         {
-            var sender = msg.Header.Type;
-            if (!this._remoteTypes.ContainsKey(sender)) return;
-            if (!this._localTypes.ContainsKey(this._remoteTypes[sender])) return;
-            this._localTypes[this._remoteTypes[sender]].ForEach(handler => handler(msg));
+            var type = msg.Header.Type;
+            if (!SenderRegistration.Instance.IsActive(msg.Header.Sender)) return;
+            if (!this._remoteTypes.ContainsKey(type)) return;
+            if (!this._localTypes.ContainsKey(this._remoteTypes[type])) return;
+            this._localTypes[this._remoteTypes[type]].ForEach(handler => handler(msg));
         }
     }
 }

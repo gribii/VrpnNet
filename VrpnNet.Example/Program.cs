@@ -10,7 +10,7 @@ namespace VrpnNet.Example
 {
     public class Program
     {
-        private volatile bool _running = false;
+        private volatile bool _running;
 
         private void ReadMessageHandler(object connection)
         {
@@ -36,21 +36,25 @@ namespace VrpnNet.Example
             // register message handlers
             var analog = new VrpnAnalogRemote();
             var button = new VrpnButtonRemote();
+            var tracker = new VrpnTrackerRemote();
 
             analog.RegisterTypes();
             button.RegisterTypes();
+            tracker.RegisterTypes();
+
+            SenderRegistration.Instance.RegisterLocalSender("DTrack");
 
             analog.ChannelReceived += (header, data) =>
             {
                 Console.WriteLine("[Analog Remote] [{1}] {0}",
                     string.Join(",", data.Channels.Select(d => string.Format("{0:0.00}", d))),
-                    SenderRegistration.Instance[header.Sender].Replace("\0", "").Trim());
+                    SenderRegistration.Instance[header.Sender].Trim());
             };
             button.ChangeReceived += (header, data) =>
             {
                 Console.WriteLine("[Button Change] [{2}] Button {0} change state to {1}",
                     data.Button, data.ButtonState,
-                    SenderRegistration.Instance[header.Sender].Replace("\0", "").Trim());
+                    SenderRegistration.Instance[header.Sender].Trim());
             };
             button.StatesReceived += (header, data) =>
             {
@@ -58,8 +62,43 @@ namespace VrpnNet.Example
                 {
                     Console.WriteLine("[Button States] [{2}] Button {0} is in state {1}",
                         i, data.States[i],
-                        SenderRegistration.Instance[header.Sender].Replace("\0", "").Trim());
+                        SenderRegistration.Instance[header.Sender].Trim());
                 }
+            };
+            tracker.VelocityChange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker Velocity] [{0}] Sensor {1}, Velocity [{2}], Quat [{3}], Dt {4}",
+                    SenderRegistration.Instance[header.Sender].Trim(), data.Sensor,
+                    string.Join(",", data.Velocity.Select(v => string.Format("{0:0.00}", v))),
+                    string.Join(",", data.VelocityQuaternion.Select(v => string.Format("{0:0.00}", v))),
+                    data.VelocityQuaternionDt);
+            };
+            tracker.PositionChange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker Position] [{0}] Sensor {1}, Pos [{2}], Quat [{3}]",
+                    SenderRegistration.Instance[header.Sender].Trim(), data.Sensor,
+                    string.Join(",", data.Velocity.Select(v => string.Format("{0:0.00}", v))),
+                    string.Join(",", data.Orientation.Select(v => string.Format("{0:0.00}", v))));
+            };
+            tracker.TrackerToRoomChange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker TrackerToRoom]");
+            };
+            tracker.UnitToSensorchange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker UnitToSensorchange]");
+            };
+            tracker.WorkspaceChange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker WorkspaceChange]");
+            };
+            tracker.AccelerationChange += (header, data) =>
+            {
+                Console.WriteLine("[Tracker Acceleration] [{0}] Sensor {1}, Acceleration [{2}], Quat [{3}], Dt {4}",
+                    SenderRegistration.Instance[header.Sender].Trim(), data.Sensor,
+                    string.Join(",", data.Acceleration.Select(v => string.Format("{0:0.00}", v))),
+                    string.Join(",", data.AccelerationQuaternion.Select(v => string.Format("{0:0.00}", v))),
+                    data.AccelerationQuaternionDt);
             };
 
             // connect to vrpn server
