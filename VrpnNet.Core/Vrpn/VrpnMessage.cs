@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using VrpnNet.Core.Utils;
@@ -63,30 +65,43 @@ namespace VrpnNet.Core.Vrpn
         ///     assigned in a different way.
         /// </param>
         /// <returns>The message received over network.</returns>
-        public static VrpnMessage Receive(Socket s, bool udp)
+        public static List<VrpnMessage> Receive(Socket s, bool udp)
         {
             var buffer = new byte[VrpnMessageHeader.HeaderLength];
             if (udp) buffer = new byte[VrpnConstants.VRPN_UDP_BUFFER_LENGTH];
 
-            s.Receive(buffer);
+            var received = s.Receive(buffer);
+            var position = 0U;
+            var messages = new List<VrpnMessage>();
 
-            // parse the header
-            var header = VrpnMessageHeader.Parse(buffer);
-
-            // if we are using udp, the data is already in the buffer, else we have to read them
-            byte[] payload;
-            if (udp)
+            while (position < received)
             {
-                payload = new byte[header.Length];
-                buffer.Skip((int) VrpnMessageHeader.HeaderLength).Take((int) header.Length).ToArray().CopyTo(payload, 0);
-            }
-            else
-            {
-                payload = new byte[header.CeiledLength];
-                s.Receive(payload);
+                // parse the header
+                var header = VrpnMessageHeader.Parse(buffer);
+
+                // if we are using udp, the data is already in the buffer, else we have to read them
+                byte[] payload;
+                if (udp)
+                {
+                    payload = new byte[header.Length];
+                    buffer.Skip((int)position + (int) VrpnMessageHeader.HeaderLength)
+                        .Take((int) header.Length)
+                        .ToArray()
+                        .CopyTo(payload, 0);
+                }
+                else
+                {
+                    // ignore position for tcp packets because here only one packet is read at once.
+                    payload = new byte[header.CeiledLength];
+                    s.Receive(payload);
+                }
+
+                position += VrpnMessageHeader.HeaderLength + header.CeiledLength;
+
+                messages.Add(new VrpnMessage(header, payload));
             }
 
-            return new VrpnMessage(header, payload);
+            return messages;
         }
 
         /// <summary>
@@ -136,6 +151,12 @@ namespace VrpnNet.Core.Vrpn
 
             var header = VrpnMessageHeader.Create(payload, sender, (int) VrpnMessageType.SenderDescription);
             return new VrpnMessage(header, payload);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Sender: [{0}] Type: [{1}] Length: [{2}] Data: [{3}]", this.Header.Sender,
+                this.Header.Type, this.Header.Length, BitConverter.ToString(this.Payload));
         }
     }
 }

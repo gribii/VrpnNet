@@ -9,12 +9,15 @@ namespace VrpnNet.Core.Vrpn
     /// </summary>
     public class VrpnMessageHeader
     {
-        private VrpnMessageHeader(uint length, uint ceiledLength, int sender, int type)
+        private static readonly DateTime EPOCH = new DateTime(1970, 1, 1, 0, 0, 0);
+
+        private VrpnMessageHeader(uint length, uint ceiledLength, int sender, int type, uint sec, uint usec)
         {
             this.Length = length;
             this.CeiledLength = ceiledLength;
             this.Sender = sender;
             this.Type = type;
+            this.Date = VrpnMessageHeader.EPOCH.AddSeconds(sec).AddMilliseconds(usec/1000.0);
         }
 
         /// <summary>
@@ -43,6 +46,11 @@ namespace VrpnNet.Core.Vrpn
         public int Type { get; }
 
         /// <summary>
+        ///     The date when message has been sent.
+        /// </summary>
+        public DateTime Date { get; }
+
+        /// <summary>
         ///     Parse header data received over network into an object.
         /// </summary>
         /// <param name="buffer">The buffer where the raw header data are stored.</param>
@@ -55,10 +63,12 @@ namespace VrpnNet.Core.Vrpn
             {
                 ceil_len += 8 - len%8;
             }
+            var sec = BitConverter.ToUInt32(buffer.Skip(4).Take(4).Reverse().ToArray(), 0);
+            var usec = BitConverter.ToUInt32(buffer.Skip(8).Take(4).Reverse().ToArray(), 0);
             var sender = BitConverter.ToInt32(buffer.Skip(12).Take(4).Reverse().ToArray(), 0);
             var type = BitConverter.ToInt32(buffer.Skip(16).Take(4).Reverse().ToArray(), 0);
 
-            return new VrpnMessageHeader(len, ceil_len, sender, type);
+            return new VrpnMessageHeader(len, ceil_len, sender, type, sec, usec);
         }
 
         /// <summary>
@@ -74,7 +84,9 @@ namespace VrpnNet.Core.Vrpn
             var ceil_len = len;
             if (ceil_len%VrpnConstants.VRPN_ALIGN != 0)
                 ceil_len += VrpnConstants.VRPN_ALIGN - ceil_len%VrpnConstants.VRPN_ALIGN;
-            return new VrpnMessageHeader(len, ceil_len, sender, type);
+            return new VrpnMessageHeader(len, ceil_len, sender, type,
+                (uint)(DateTime.Now - VrpnMessageHeader.EPOCH).TotalSeconds,
+                (uint)(DateTime.Now - VrpnMessageHeader.EPOCH).Milliseconds * 1000);
         }
 
         /// <summary>
@@ -91,7 +103,7 @@ namespace VrpnNet.Core.Vrpn
 
             var header = new byte[VrpnMessageHeader.HeaderLength];
             var offset = 0;
-            
+
             for (var i = 0; i < 4; i++) header[offset++] = header1[i];
             for (var i = 0; i < 4; i++) header[offset++] = header2[i];
             for (var i = 0; i < 4; i++) header[offset++] = header3[i];

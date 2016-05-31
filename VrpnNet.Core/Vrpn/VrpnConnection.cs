@@ -173,32 +173,44 @@ namespace VrpnNet.Core.Vrpn
         {
             while (s.Available > 24)
             {
-                var msg = VrpnMessage.Receive(s, s.ProtocolType == ProtocolType.Udp);
+                var msgs = VrpnMessage.Receive(s, s.ProtocolType == ProtocolType.Udp);
 
-                switch (msg.Header.Type)
+#if DEBUG
+                Debug.WriteLine("Received " + (s.ProtocolType) + " packet.");
+#endif
+
+                foreach (var msg in msgs)
                 {
-                    case (int) VrpnMessageType.SenderDescription:
-                        var senderLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
-                        var sender = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) senderLen).ToArray());
 #if DEBUG
-                        Debug.WriteLine(string.Format("[Sender] Sender: {0} ID: {1}", sender, msg.Header.Sender));
+                    // Log packets
+                    Debug.WriteLine("=== DATA === " + msg.ToString() + " === DATA ===");
 #endif
-                        SenderRegistration.Instance.RegisterSender(msg.Header.Sender, sender);
-                        break;
-                    case (int) VrpnMessageType.TypeDescription:
-                        var typeLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
-                        var type = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) typeLen).ToArray());
+                    switch (msg.Header.Type)
+                    {
+                        case (int) VrpnMessageType.SenderDescription:
+                            var senderLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
+                            var sender = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) senderLen).ToArray());
 #if DEBUG
-                        Debug.WriteLine(string.Format("[Type] Type: {0} ID: {1}", type, msg.Header.Sender));
+                            Debug.WriteLine(string.Format("[Sender] Sender: {0} ID: {1}", sender, msg.Header.Sender));
 #endif
-                        TypeRegistration.Instance.RegisterRemoteType(msg.Header.Sender, type);
-                        break;
-                    default:
+                            SenderRegistration.Instance.RegisterSender(msg.Header.Sender, sender);
+                            break;
+                        case (int) VrpnMessageType.TypeDescription:
+                            var typeLen = BitConverter.ToUInt32(msg.Payload.Take(4).Reverse().ToArray(), 0);
+                            var type = Encoding.UTF8.GetString(msg.Payload.Skip(4).Take((int) typeLen).ToArray());
 #if DEBUG
-                        Debug.WriteLine(string.Format("[Message] Sender: {0} Type: {1}", msg.Header.Sender, msg.Header.Type));
+                            Debug.WriteLine(string.Format("[Type] Type: {0} ID: {1}", type, msg.Header.Sender));
 #endif
-                        TypeRegistration.Instance.ExecuteHandler(msg);
-                        break;
+                            TypeRegistration.Instance.RegisterRemoteType(msg.Header.Sender, type);
+                            break;
+                        default:
+#if DEBUG
+                            Debug.WriteLine(string.Format("[Message] Sender: {0} Type: {1}", msg.Header.Sender,
+                                msg.Header.Type));
+#endif
+                            TypeRegistration.Instance.ExecuteHandler(msg);
+                            break;
+                    }
                 }
             }
         }
