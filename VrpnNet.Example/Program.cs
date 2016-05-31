@@ -95,7 +95,7 @@ namespace VrpnNet.Example
                 else Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("[Tracker Position] [{4}] [{0}] Sensor {1}, Pos [{2}], Quat [{3}]",
                     SenderRegistration.Instance[header.Sender].Trim(), data.Sensor,
-                    string.Join(",", data.Velocity.Select(v => string.Format("{0:0.00}", v))),
+                    string.Join(",", data.Position.Select(v => string.Format("{0:0.00}", v))),
                     string.Join(",", data.Orientation.Select(v => string.Format("{0:0.00}", v))),
                     header.Date.ToString("dd.MM.yyyy HH:mm:ss.fff"));
                 Console.ForegroundColor = ConsoleColor.White;
@@ -122,7 +122,7 @@ namespace VrpnNet.Example
             };
 
             // connect to vrpn server
-            var c = new VrpnConnection("localhost", 3883, IPAddress.Parse("127.0.0.1"));
+            var c = new VrpnConnection("192.168.10.50", 3883, IPAddress.Parse("192.168.10.45"));
             c.Connect(3, 1000);
 
             // start message reader thread

@@ -175,7 +175,7 @@ namespace VrpnNet.Core.Vrpn.Remote
         public class PositionChangeData : ChangeDataBase
         {
             public int Sensor => this.sensor.Value;
-            public double[] Velocity => this.data1;
+            public double[] Position => this.data1;
             public double[] Orientation => this.data2;
         }
 
