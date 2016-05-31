@@ -77,7 +77,7 @@ namespace VrpnNet.Core.Vrpn
             while (position < received)
             {
                 // parse the header
-                var header = VrpnMessageHeader.Parse(buffer);
+                var header = VrpnMessageHeader.Parse(buffer.Skip((int)position).ToArray());
 
                 // if we are using udp, the data is already in the buffer, else we have to read them
                 byte[] payload;

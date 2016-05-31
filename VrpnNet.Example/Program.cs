@@ -39,10 +39,10 @@ namespace VrpnNet.Example
             var tracker = new VrpnTrackerRemote("DTrack");
             var button2 = new VrpnButtonRemote("Mouse0");
 
-            //analog.RegisterTypes();
-            //button.RegisterTypes();
+            analog.RegisterTypes();
+            button.RegisterTypes();
             tracker.RegisterTypes();
-            //button2.RegisterTypes();
+            button2.RegisterTypes();
 
             analog.ChannelReceived += (header, data) =>
             {
@@ -128,14 +128,6 @@ namespace VrpnNet.Example
             // start message reader thread
             this._running = true;
             new Thread(this.ReadMessageHandler).Start(c);
-
-            Thread.Sleep(5000);
-            VrpnMessage.CreateSenderDescriptionMessage(tracker.Name,
-                SenderRegistration.Instance.RegisterLocalSender(tracker.Name)).SendTcp(c);
-            tracker.RegisterLocalTypes(c);
-            tracker.RequestTracker2Room(c);
-            tracker.RequestUnit2Sensor(c);
-            tracker.RequestWorkspace(c);
         }
 
         private void Stop()
