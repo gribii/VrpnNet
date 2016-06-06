@@ -13,6 +13,11 @@ namespace VrpnNet.Core.Vrpn
     /// </summary>
     public class VrpnConnection : IDisposable
     {
+        /// <summary>
+        /// Raised for every message
+        /// </summary>
+        public event VrpnMessageHandler MessageReceived;
+
         private readonly string _host;
         private readonly IPAddress _localBindAddress;
 
@@ -211,6 +216,9 @@ namespace VrpnNet.Core.Vrpn
                             TypeRegistration.Instance.ExecuteHandler(msg);
                             break;
                     }
+
+                    // notify about received messages
+                    this.MessageReceived?.Invoke(msg);
                 }
             }
         }
